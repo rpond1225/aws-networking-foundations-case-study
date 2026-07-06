@@ -1,0 +1,16 @@
+graph TD
+
+    Internet((Internet))
+
+    IGW[Internet Gateway]
+
+    VPC["AWS VPC"]
+
+    Public["Public Subnet"]
+
+    Private["Private Subnet"]
+
+    Internet --> IGW
+    IGW --> VPC
+    VPC --> Public
+    VPC --> Private
