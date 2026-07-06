@@ -4,13 +4,17 @@ graph TD
 
     IGW[Internet Gateway]
 
-    VPC["AWS VPC"]
+    subgraph AWS["AWS Account"]
 
-    Public["Public Subnet"]
+        subgraph VPC["VPC"]
 
-    Private["Private Subnet"]
+            Public["Public Subnet"]
+
+            Private["Private Subnet"]
+
+        end
+
+    end
 
     Internet --> IGW
-    IGW --> VPC
-    VPC --> Public
-    VPC --> Private
+    IGW --> Public
