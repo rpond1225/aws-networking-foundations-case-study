@@ -12,3 +12,8 @@ variable "project_name" {
   description = "Project name used for tagging resources"
   type        = string
 }
+
+variable "trusted_ssh_cidr" {
+  description = "Trusted CIDR block allowed to SSH into public resources"
+  type        = string
+}
