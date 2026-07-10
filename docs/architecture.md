@@ -67,9 +67,29 @@ The route table controls network routing within the VPC and directs internet-bou
 
 The Network Access Control List (NACL) provides stateless subnet-level traffic filtering.
 
-### Security Group
+## Security Groups
 
-Security Groups provide stateful instance-level traffic filtering and act as the primary security boundary for compute resources deployed within the VPC.
+This environment uses AWS Security Groups as the primary network access control mechanism. Security Groups are stateful virtual firewalls that control traffic to individual AWS resources.
+
+### Public Web Security Group
+
+The public web security group allows:
+
+- HTTP (TCP 80) from the Internet
+- HTTPS (TCP 443) from the Internet
+- SSH (TCP 22) only from a trusted administrator IP address
+- All outbound traffic
+
+### Private Application Security Group
+
+The private application security group allows:
+
+- TCP port **8080** only from resources associated with the public web security group
+- All outbound traffic
+
+Port **8080** was selected because it is a common application port used by web application frameworks such as Apache Tomcat, Spring Boot, and many Java-based services. The specific application is not deployed as part of this case study; instead, the port is used to demonstrate a common multi-tier architecture pattern in which a public-facing web tier communicates securely with a private application tier.
+
+Rather than allowing traffic from an IP address or subnet, the private application security group trusts the **public web security group** itself. This approach allows access to follow application identity rather than network location and is considered a cloud-native security design pattern within AWS.
 
 ---
 
@@ -81,6 +101,16 @@ The complete architecture is documented in the following assets:
 
 - Source: `diagrams/source/aws-networking-foundations.mmd`
 - Rendered Diagram: `diagrams/exported/aws-networking-foundations.svg`
+
+## Milestone CAL-001.02 — Route Tables
+
+The network architecture now includes dedicated route tables for both the public and private subnets.
+
+The public route table provides internet connectivity by routing outbound traffic through the Internet Gateway. The private route table remains isolated, allowing only local VPC routing at this stage of the project.
+
+Separating routing from subnet design demonstrates an important AWS networking principle: subnets define network boundaries, while route tables determine how traffic is directed within and beyond those boundaries.
+
+This milestone intentionally introduces routing before implementing security groups, network ACLs, or NAT Gateways so that each networking concept can be understood independently.
 
 ---
 

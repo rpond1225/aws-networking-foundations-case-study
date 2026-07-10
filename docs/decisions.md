@@ -77,10 +77,45 @@ As the project evolves, additional architectural decisions may include:
 - CIDR allocation strategy
 - Multi-AZ design
 - NAT Gateway placement
-- Security Group strategy
 - Network ACL usage
 - Route table organization
 - High availability considerations
 - Cost optimization decisions
 
 Significant long-term decisions should also be documented as individual Architecture Decision Records (ADRs) when appropriate.
+
+## Decision 6 — Separate Security Groups by Application Tier
+
+### Decision
+
+Create separate Security Groups for the public web tier and the private application tier.
+
+### Rationale
+
+Separating Security Groups follows the principle of least privilege by assigning different network access policies to different application tiers. Public-facing resources require different access than private application resources, and separating them improves security, readability, and long-term maintainability.
+
+---
+
+## Decision 7 — Use Security Group References Between Application Tiers
+
+### Decision
+
+Allow communication from the public web tier to the private application tier by referencing the public web Security Group instead of allowing traffic from IP addresses or subnet CIDR ranges.
+
+### Rationale
+
+Security Group references express trust between application tiers rather than network locations. This approach is resilient to infrastructure changes because resources may be replaced or scaled without requiring updates to IP-based firewall rules. It reflects a cloud-native security model commonly used in AWS environments.
+
+---
+
+## Decision 8 — Use TCP Port 8080 for the Private Application Tier
+
+### Decision
+
+Model communication between the public web tier and the private application tier using TCP port 8080.
+
+### Rationale
+
+Port 8080 is commonly used by enterprise application servers such as Apache Tomcat, Spring Boot, and other Java-based web applications. Although this project does not yet deploy an application, using a realistic application port demonstrates a common multi-tier architecture pattern while remaining independent of any specific application framework.
+
+---

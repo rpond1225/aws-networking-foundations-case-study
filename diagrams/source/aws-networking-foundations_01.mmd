@@ -1,23 +1,21 @@
-flowchart TB
-
+graph TD
 %% =============================================================================
 %% Cloud Architect Lab
 %% CAL-001 - AWS Networking Foundations
 %% =============================================================================
-%% Milestone: CAL-001.02
-%% Title: Route Tables
+%% Milestone: CAL-001.01
+%% Title: Initial VPC Architecture
 %% =============================================================================
 %% What changed:
-%% • Updated to Mermaid flowchart syntax for improved compatibility.
-%% • Added public route table.
-%% • Added private route table.
-%% • Associated route tables with subnets.
+%% • Created the initial VPC architecture.
+%% • Added Internet Gateway.
+%% • Added public subnet.
+%% • Added private subnet.
 %% =============================================================================
 
 %% ==========
 %% External
 %% ==========
-
 
 Internet((Internet))
 
@@ -25,29 +23,26 @@ Internet((Internet))
 %% Edge
 %% ==========
 
-IGW["Internet Gateway"]
+IGW[Internet Gateway]
 
 %% ==========
-%% AWS Region
+%% AWS Region - us-east-1
 %% ==========
 
 subgraph AWS["AWS Region - us-east-1"]
 
-subgraph VPC["VPC - 10.0.0.0/16"]
+    subgraph VPC["VPC - 10.0.0.0/16"]
 
-    PublicRT["Public Route Table"]
-    PrivateRT["Private Route Table"]
+        Public["Public Subnet<br/>10.0.1.0/24"]
+        Private["Private Subnet<br/>10.0.2.0/24"]
 
-    Public["Public Subnet<br/>10.0.1.0/24"]
-    Private["Private Subnet<br/>10.0.2.0/24"]
     end
+
 end
 
 %% ==========
-%% Connectivity and Routing
+%% Connectivity
 %% ==========
 
 Internet --> IGW
-IGW -. "Default route" .-> PublicRT
-PublicRT -. "Associated with" .-> Public
-PrivateRT -. "Associated with" .-> Private
+IGW --> Public

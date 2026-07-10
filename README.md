@@ -46,6 +46,19 @@ The environment currently includes:
 | `diagrams/source/aws-networking-foundations.mmd` | Mermaid source (Architecture as Code) |
 | `diagrams/exported/aws-networking-foundations.svg` | Rendered architecture diagram |
 
+### Current Architecture
+
+The current implementation includes:
+
+- Amazon VPC (10.0.0.0/16)
+- Public subnet
+- Private subnet
+- Internet Gateway
+- Public Route Table
+- Private Route Table
+
+This milestone focuses on AWS routing fundamentals by introducing subnet-to-route-table associations while maintaining a simple, easy-to-understand network design.
+
 ---
 
 ## Repository Structure
