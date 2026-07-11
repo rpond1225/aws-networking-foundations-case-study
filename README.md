@@ -20,7 +20,7 @@
 
 ## Overview
 
-AWS Networking Foundations is the first technical case study in the Cloud Architect Lab portfolio.
+Cloud Architect Lab is a portfolio of architecture-focused engineering case studies that demonstrate Infrastructure as Code, Architecture as Code, and cloud design principles through repeatable, production-inspired implementations.
 
 The project establishes a secure, reusable networking foundation in Amazon Web Services using Terraform. Rather than creating infrastructure manually through the AWS Management Console, every resource is defined as Infrastructure as Code (IaC), making the environment repeatable, version-controlled, and easy to evolve.
 
@@ -30,14 +30,19 @@ This project also serves as the foundation for future case studies, including VP
 
 ## Architecture
 
-The environment currently includes:
+The current implementation includes:
 
-- Virtual Private Cloud (VPC)
-- Public Subnet
+- Amazon VPC (`10.0.0.0/16`)
+- Public Subnet (`10.0.1.0/24`)
+- Private Subnet (`10.0.2.0/24`)
 - Internet Gateway
-- Route Table
+- Public Route Table
+- Private Route Table
 - Network ACL
-- Security Group
+- Public Web Security Group
+- Private Application Security Group
+
+This milestone introduces explicit routing through dedicated public and private route tables. The architecture demonstrates how route tables—not subnets—determine network reachability within a VPC while preparing the environment for future NAT Gateway and multi-tier application deployments.
 
 ### Architecture Assets
 
@@ -146,9 +151,9 @@ terraform destroy
 
 ## Documentation
 
-Additional project documentation is located in the `docs/` directory.
+The README provides a high-level overview of the project. Detailed engineering documentation is maintained under the `docs/` directory, where each document serves a specific purpose within the Cloud Architect Lab documentation standard.
 
-| Document           | Purpose |
+| Document | Purpose |
 |--------------------|---------|
 | `architecture.md` | Overall solution architecture and design |
 | `decisions.md` | Key design decisions and architectural tradeoffs |
@@ -161,27 +166,37 @@ Additional project documentation is located in the `docs/` directory.
 
 ## Current Status
 
-- ✅ Repository structure established
-- ✅ Documentation standards implemented
-- ✅ Terraform project initialized
-- ✅ AWS networking foundation successfully deployed
-- 🚧 Documentation refinement in progress
-- 🚧 Additional networking components planned
+### Completed
+
+- ✅ CAL-001.01 — Initial VPC Architecture
+- ✅ CAL-001.02 — Route Tables
+- ✅ Terraform implementation
+- ✅ AWS deployment validated
+- ✅ Architecture documentation
+
+### In Progress
+
+- 🚧 CAL-001.03 — Security Groups
+
+### Planned
+
+- NAT Gateway
+- EC2 workload
+- Multi-AZ architecture
+- VPC Peering
 
 ---
 
 ## Next Steps
 
-Planned enhancements include:
+Upcoming milestones include:
 
-- Private subnet implementation
-- Multi-AZ architecture
-- NAT Gateway
-- Additional route tables
-- Expanded security groups
+- Security Groups
 - EC2 workload deployment
+- NAT Gateway
+- Multi-AZ architecture
 - VPC Peering
-- Enhanced validation documentation
+- Enterprise routing patterns
 
 ---
 

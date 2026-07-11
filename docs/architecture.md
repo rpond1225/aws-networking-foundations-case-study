@@ -17,9 +17,10 @@ The initial implementation establishes the foundational networking components re
 - Custom Virtual Private Cloud (VPC)
 - Public Subnet
 - Internet Gateway
-- Route Table
+- Public Route Table
+- Private Route Table
 - Network ACL
-- Security Group
+- Security Groups
 
 This networking layer serves as the base upon which future case studies will build additional capabilities, including private subnets, NAT Gateways, EC2 instances, VPC Peering, and multi-AZ architectures.
 
@@ -59,9 +60,24 @@ The public subnet hosts resources that require direct internet connectivity thro
 
 The Internet Gateway enables communication between resources in the public subnet and the public Internet.
 
-### Route Table
+### Route Tables
 
-The route table controls network routing within the VPC and directs internet-bound traffic through the Internet Gateway.
+Route tables determine how network traffic flows within the VPC and to external destinations. While subnets define network boundaries, route tables determine where traffic is permitted to travel.
+
+This architecture uses separate route tables for the public and private subnets.
+
+The **Public Route Table** contains:
+
+- `10.0.0.0/16 → Local`
+- `0.0.0.0/0 → Internet Gateway`
+
+The **Private Route Table** currently contains only:
+
+- `10.0.0.0/16 → Local`
+
+Because the private route table does not include a default route to the Internet Gateway, resources deployed into the private subnet remain isolated from direct internet access while still communicating with other resources inside the VPC through the AWS-provided Local route.
+
+This routing design establishes the networking foundation for future milestones, including NAT Gateway deployment, multi-tier application architectures, and secure private workloads.
 
 ### Network ACL
 
@@ -97,6 +113,8 @@ Rather than allowing traffic from an IP address or subnet, the private applicati
 
 The current architecture consists of a single VPC containing one public subnet with controlled internet access through an Internet Gateway.
 
+The architecture intentionally separates network structure from routing behavior. Public and private subnets are associated with independent route tables, allowing internet connectivity to be controlled through routing decisions rather than subnet definitions alone.
+
 The complete architecture is documented in the following assets:
 
 - Source: `diagrams/source/aws-networking-foundations.mmd`
@@ -104,13 +122,17 @@ The complete architecture is documented in the following assets:
 
 ## Milestone CAL-001.02 — Route Tables
 
-The network architecture now includes dedicated route tables for both the public and private subnets.
+This milestone expands the initial VPC architecture by introducing dedicated route tables for the public and private subnets.
 
-The public route table provides internet connectivity by routing outbound traffic through the Internet Gateway. The private route table remains isolated, allowing only local VPC routing at this stage of the project.
+The public route table includes both the AWS-provided Local route and a default route (`0.0.0.0/0`) that directs internet-bound traffic through the Internet Gateway.
 
-Separating routing from subnet design demonstrates an important AWS networking principle: subnets define network boundaries, while route tables determine how traffic is directed within and beyond those boundaries.
+The private route table intentionally contains only the Local route, preventing direct internet connectivity while preserving communication within the VPC.
 
-This milestone intentionally introduces routing before implementing security groups, network ACLs, or NAT Gateways so that each networking concept can be understood independently.
+This milestone demonstrates an important AWS networking principle:
+
+> **Subnets define network boundaries. Route tables determine how traffic moves through those boundaries.**
+
+Establishing separate routing behavior at this stage prepares the architecture for future milestones, including NAT Gateway deployment, private application workloads, and multi-tier network designs.
 
 ---
 
@@ -120,8 +142,8 @@ This project intentionally omits several production-oriented components while fo
 
 Current exclusions include:
 
-- Private subnets
 - NAT Gateway
+- EC2 workloads
 - Multiple Availability Zones
 - Transit Gateway
 - VPN connectivity
