@@ -151,7 +151,7 @@ terraform destroy
 
 ## Documentation
 
-The README provides a high-level overview of the project. Detailed engineering documentation is maintained under the `docs/` directory, where each document serves a specific purpose within the Cloud Architect Lab documentation standard.
+This README provides a high-level overview of the project. Detailed engineering documentation is maintained under the `docs/` directory, where each document serves a specific purpose within the Cloud Architect Lab documentation standard.
 
 | Document | Purpose |
 |--------------------|---------|
