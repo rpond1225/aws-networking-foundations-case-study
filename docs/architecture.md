@@ -64,11 +64,11 @@ These resources currently remain under AWS default management and are intentiona
 
 Future milestones will introduce Terraform-managed subnets, Internet Gateway, route tables, route table associations, and additional networking components as the architecture evolves.
 
-## Security Groups
+### Security Groups
 
 This environment uses AWS Security Groups as the primary instance-level network access control mechanism. Security Groups are stateful virtual firewalls that control traffic to individual AWS resources.
 
-### Public Web Security Group
+#### Public Web Security Group
 
 The public web security group allows:
 
@@ -77,7 +77,7 @@ The public web security group allows:
 - SSH (TCP 22) only from a trusted administrator IP address
 - All outbound traffic
 
-### Private Application Security Group
+#### Private Application Security Group
 
 The private application security group allows:
 
@@ -87,6 +87,20 @@ The private application security group allows:
 Port **8080** was selected because it is a common application port used by web application frameworks such as Apache Tomcat, Spring Boot, and many Java-based services. The specific application is not deployed as part of this case study; instead, the port is used to demonstrate a common multi-tier architecture pattern in which a public-facing web tier communicates securely with a private application tier.
 
 Rather than allowing traffic from an IP address or subnet, the private application security group trusts the **public web security group** itself. This approach allows access to follow application identity rather than network location and is considered a cloud-native security design pattern within AWS.
+
+---
+
+## Design Considerations
+
+### Security, Availability, and Cost Tradeoffs
+
+The architecture separates public-facing and internal resources into distinct network boundaries. As future milestones introduce public and private subnets, public-facing resources will use routing through an Internet Gateway only when external connectivity is required, while private resources will remain isolated from direct internet access. This layered approach reduces the externally accessible attack surface and establishes a clear security boundary between internet-facing and internal application resources.
+
+This foundational implementation intentionally prioritizes simplicity, repeatability, and cost control over production-level availability. The initial architecture is designed to demonstrate core AWS networking concepts while minimizing unnecessary complexity and ongoing AWS costs.
+
+As the project evolves, production-oriented capabilities such as multiple Availability Zones, redundant networking paths, and managed egress services will be introduced incrementally. This phased approach allows each architectural enhancement to be implemented, validated, and documented independently while preserving a clear learning progression.
+
+Where production environments commonly use components such as a NAT Gateway to provide outbound internet access for private workloads, those services are intentionally deferred until they become necessary for the implementation. This keeps the learning environment focused on the networking concepts introduced in each milestone while avoiding unnecessary recurring infrastructure costs.
 
 ---
 
