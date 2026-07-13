@@ -1,0 +1,46 @@
+flowchart TB
+
+%% =============================================================================
+%% Cloud Architect Lab
+%% CAL-001 - AWS Networking Foundations
+%% =============================================================================
+%% Diagram Type: Current As-Built Architecture
+%% Milestone: Security Group Foundations
+%% Terraform State: Current
+%% =============================================================================
+%% Terraform-managed resources:
+%% • VPC
+%% • Public web security group
+%% • Private application security group
+%% =============================================================================
+%% AWS-managed default resources:
+%% • Main route table
+%% • Default network ACL
+%% • Default security group
+%% =============================================================================
+%% No subnets, Internet Gateway, NAT Gateway, custom route tables,
+%% route-table associations, or compute resources are currently deployed.
+%% =============================================================================
+
+Internet((Internet))
+
+TrustedAdmin["Trusted Administrator<br/>Configured CIDR"]
+
+subgraph AWS["AWS Region - us-east-1"]
+
+    subgraph VPC["VPC - 10.0.0.0/16"]
+
+        PublicSG["Public Web Security Group<br/><br/>HTTP 80 from Internet<br/>HTTPS 443 from Internet<br/>SSH 22 from Trusted CIDR<br/><br/>All outbound traffic allowed"]
+
+        PrivateSG["Private Application Security Group<br/><br/>TCP 8080 from<br/>Public Web Security Group only<br/><br/>All outbound traffic allowed"]
+
+        Defaults["Default VPC Components (AWS Managed)<br/><br/>Main Route Table<br/>Default Network ACL<br/>Default Security Group<br/><br/><i>Not explicitly managed by Terraform</i>"]
+
+    end
+end
+
+Internet -.->|"Ingress rule source<br/>HTTP 80 / HTTPS 443"| PublicSG
+
+TrustedAdmin -.->|"Ingress rule source<br/>SSH 22"| PublicSG
+
+PublicSG -.->|"Security group reference<br/>TCP 8080"| PrivateSG

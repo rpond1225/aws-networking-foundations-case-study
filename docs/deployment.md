@@ -4,13 +4,15 @@
 
 This document describes the deployment process for **CAL-001 – AWS Networking Foundations**.
 
-The objective is to provide a repeatable deployment procedure that provisions the networking infrastructure entirely through Infrastructure as Code using Terraform.
+The objective is to provide a repeatable, validation-driven deployment process that provisions the AWS networking infrastructure entirely through Infrastructure as Code (Terraform).
+
+This deployment procedure reflects the Cloud Architect Lab engineering workflow and is intended to be reused across future case studies.
 
 ---
 
-## Deployment Prerequisites
+# Deployment Prerequisites
 
-Before deploying this project, ensure the following requirements are met:
+Before deploying this project, ensure the following prerequisites are met:
 
 - AWS account with appropriate permissions
 - AWS CLI installed and authenticated
@@ -18,7 +20,7 @@ Before deploying this project, ensure the following requirements are met:
 - Git installed
 - Visual Studio Code (recommended)
 
-Verify the environment:
+Verify the local environment:
 
 ```bash
 aws --version
@@ -28,9 +30,9 @@ git --version
 
 ---
 
-## Deployment Workflow
+# Deployment Workflow
 
-The deployment process follows the standard Infrastructure as Code lifecycle.
+The deployment follows the standard Cloud Architect Lab engineering workflow.
 
 ```
 Edit Terraform
@@ -45,82 +47,202 @@ terraform validate
 terraform plan
         │
         ▼
-terraform apply
+terraform plan -out=<planfile>
         │
         ▼
-Verify in AWS
+Review Plan
+        │
+        ▼
+terraform apply <planfile>
+        │
+        ▼
+Terraform Validation
+        │
+        ▼
+AWS Console Validation
+        │
+        ▼
+Documentation Updates
+        │
+        ▼
+Git Commit
 ```
+
+Each phase is completed before proceeding to the next.
 
 ---
 
-## Initialize Terraform
+# Initialize Terraform
+
+From the project Terraform directory:
 
 ```bash
 cd terraform
 terraform init
 ```
 
-Terraform downloads the required provider plugins and prepares the working directory.
+Terraform downloads the required AWS provider plugins and initializes the working directory.
 
 ---
 
-## Review the Execution Plan
+# Format the Configuration
+
+Before validating or deploying infrastructure, ensure all Terraform files follow the standard formatting.
+
+```bash
+terraform fmt
+```
+
+This promotes consistency across the repository and reduces unnecessary formatting changes in Git.
+
+---
+
+# Validate the Configuration
+
+Validate the Terraform configuration before generating an execution plan.
+
+```bash
+terraform validate
+```
+
+Terraform should report:
+
+```text
+Success! The configuration is valid.
+```
+
+---
+
+# Review the Execution Plan
+
+Generate an execution plan to review all proposed infrastructure changes.
 
 ```bash
 terraform plan
 ```
 
-Review all proposed infrastructure changes before deployment.
+Review the plan carefully before deployment.
+
+Confirm that only the intended infrastructure changes will occur.
 
 ---
 
-## Deploy Infrastructure
+# Save the Deployment Plan
+
+Once the execution plan has been reviewed, save it for deployment.
 
 ```bash
-terraform apply
+terraform plan -out=cal-001.tfplan
+```
+
+Saving the plan ensures the reviewed deployment is the exact deployment that will be applied.
+
+---
+
+# Deploy Infrastructure
+
+Deploy the reviewed execution plan.
+
+```bash
+terraform apply cal-001.tfplan
 ```
 
 Terraform provisions the AWS networking resources defined within the project.
 
 ---
 
-## Verify Deployment
+# Post-Deployment Validation
 
-After deployment, verify:
+After deployment, verify the infrastructure using Terraform.
 
-- VPC created
-- Public subnet created
-- Internet Gateway attached
-- Route table configured
-- Security Group created
-- Network ACL configured
+```bash
+terraform output
+```
 
-Verification should be performed using both Terraform outputs and the AWS Management Console.
+```bash
+terraform state list
+```
+
+Run one final plan.
+
+```bash
+terraform plan
+```
+
+Terraform should report:
+
+> No changes. Your infrastructure matches the configuration.
 
 ---
 
-## Destroy Infrastructure
+# AWS Console Validation
 
-Because Cloud Architect Lab uses disposable lab environments, infrastructure should be removed when no longer required.
+Verify the deployed resources within the AWS Management Console.
+
+Current infrastructure includes:
+
+- VPC
+- Internet Gateway
+- Public Subnet
+- Private Subnet
+- Public Route Table
+- Private Route Table
+- Route Table Associations
+- Public Web Security Group
+- Private Application Security Group
+
+Validation evidence is documented in:
+
+**docs/validation.md**
+
+---
+
+# Infrastructure Destruction
+
+Cloud Architect Lab uses disposable lab environments.
+
+When the environment is no longer required:
 
 ```bash
 terraform destroy
 ```
 
-Destroying unused resources helps minimize AWS costs and ensures future deployments begin from a known state.
+Destroying unused infrastructure:
+
+- Minimizes AWS costs
+- Prevents configuration drift
+- Ensures future deployments begin from a known baseline
 
 ---
 
-## Future Automation
+# Future Automation
 
-The deployment workflow is expected to become increasingly automated through CAL CLI.
+The deployment workflow will progressively become automated through the Cloud Architect Lab CLI (CAL CLI).
 
-Future capabilities may include:
+Planned automation includes:
 
 - Environment validation
 - Terraform formatting
 - Terraform validation
+- Deployment plan generation
+- Deployment approval workflow
 - Diagram rendering
 - Documentation validation
 - Repository validation
-- Automated publishing
+- Website publishing
+- LinkedIn publishing
+
+---
+
+# Deployment Summary
+
+The CAL-001 deployment process emphasizes:
+
+- Infrastructure as Code
+- Repeatable deployments
+- Validation before and after deployment
+- Documentation alongside implementation
+- Disposable lab environments
+- Enterprise engineering practices
+
+Each future Cloud Architect Lab case study will follow this same deployment methodology.
