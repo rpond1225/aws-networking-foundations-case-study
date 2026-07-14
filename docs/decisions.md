@@ -72,9 +72,15 @@ Separating architecture, deployment, validation, lessons learned, and design dec
 
 ---
 
-## Future Decisions
+## Architecture Decision Records (ADRs)
 
-As the project evolves, additional architectural decisions may include:
+As the project evolves, significant implementation and architecture decisions may be captured as individual ADRs within the `docs/adr/` directory.
+
+Current ADRs include:
+
+- ADR-001 — Structured Availability Zone Configuration with `for_each`
+
+Future ADRs may document decisions such as:
 
 - CIDR allocation strategy
 - Multi-AZ design
@@ -82,9 +88,8 @@ As the project evolves, additional architectural decisions may include:
 - Network ACL usage
 - Route table organization
 - High availability considerations
-- Cost optimization decisions
-
-Significant long-term decisions should also be documented as individual Architecture Decision Records (ADRs) when appropriate.
+- Cost optimization
+- Module organization
 
 ## Decision 6 — Separate Security Groups by Application Tier
 
