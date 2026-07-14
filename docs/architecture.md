@@ -2,27 +2,47 @@
 
 ## Purpose
 
-This document describes the architecture of **CAL-001 – AWS Networking Foundations**, including the network topology, design principles, and architectural decisions that establish the baseline for future Cloud Architect Lab case studies.
+This document describes the architecture of **CAL-001 — AWS Networking Foundations**.
 
-The objective of this project is to build a secure, repeatable AWS networking foundation using Infrastructure as Code (Terraform) while following cloud architecture best practices.
+The project establishes a secure, repeatable AWS networking baseline using Terraform. The implementation is intentionally small enough to understand and validate clearly, while remaining extensible for future multi-Availability Zone and workload-based case studies.
 
 ---
 
 ## Solution Overview
 
-The architecture consists of a custom Amazon Virtual Private Cloud (VPC) deployed within a single AWS Region.
+CAL-001 deploys a custom Amazon Virtual Private Cloud within a single AWS Region.
 
-The current implementation establishes the foundational network security architecture required for future workloads.
+The current implementation includes:
 
-Terraform currently manages:
+- One custom VPC
+- One public subnet per configured Availability Zone
+- One private subnet per configured Availability Zone
+- One Internet Gateway
+- One public route table per configured Availability Zone
+- One private route table per configured Availability Zone
+- Explicit subnet-to-route-table associations
+- One public web security group
+- One private application security group
 
-- Custom Virtual Private Cloud (VPC)
-- Public Web Security Group
-- Private Application Security Group
+The current lab configuration uses a single Availability Zone, but the Terraform design uses a structured map and `for_each` so additional Availability Zones can be added through configuration rather than duplicated resource blocks.
 
-AWS automatically provides several default networking components as part of the VPC, including the main route table, default Network ACL, and default security group. These resources are not explicitly managed by Terraform during this milestone.
+---
 
-This foundation will support future milestones introducing subnets, Internet Gateway, custom route tables, NAT Gateway, EC2 workloads, VPC peering, and multi-AZ architectures.
+## Architecture Diagram
+
+![AWS Networking Architecture](../diagrams/exported/aws-networking-foundations.svg)
+
+Source:
+
+```text
+diagrams/source/aws-networking-foundations.mmd
+```
+
+Rendered asset:
+
+```text
+diagrams/exported/aws-networking-foundations.svg
+```
 
 ---
 
@@ -30,144 +50,323 @@ This foundation will support future milestones introducing subnets, Internet Gat
 
 ### Infrastructure as Code
 
-All infrastructure is defined using Terraform and stored in version control. Infrastructure should never rely on manual configuration through the AWS Management Console.
+All project-managed infrastructure is defined in Terraform and stored in version control.
+
+The AWS Management Console is used for validation and evidence capture, not for making unmanaged configuration changes.
 
 ### Architecture as Code
 
-Architecture diagrams are maintained as Mermaid source files and rendered into SVG assets. The diagram source is version-controlled alongside the infrastructure code, ensuring the architecture documentation evolves with the implementation.
+Architecture diagrams are maintained as Mermaid source files and exported as SVG assets.
+
+Keeping diagram source in the repository allows the architecture to evolve alongside the Terraform implementation.
 
 ### Repeatability
 
-The environment can be recreated consistently from source using Terraform, reducing configuration drift and enabling reproducible deployments.
+The environment can be initialized, planned, deployed, validated, and destroyed using a consistent Terraform workflow.
 
-### Simplicity
+### Incremental Design
 
-The initial architecture intentionally focuses on foundational AWS networking concepts before introducing additional complexity. Each future enhancement builds upon this baseline rather than replacing it.
+The architecture focuses on core AWS networking capabilities before introducing compute, load balancing, managed egress, or inter-VPC connectivity.
 
----
+### Cost Awareness
 
-## Architecture Components
-
-### Virtual Private Cloud (VPC)
-
-The VPC provides logical isolation for cloud resources and defines the project's private network boundary.
-
-### AWS Default Networking Components
-
-Creating a VPC automatically provisions several default networking resources, including:
-
-- Main Route Table
-- Default Network ACL
-- Default Security Group
-
-These resources currently remain under AWS default management and are intentionally not replaced during this milestone.
-
-Future milestones will introduce Terraform-managed subnets, Internet Gateway, route tables, route table associations, and additional networking components as the architecture evolves.
-
-### Security Groups
-
-This environment uses AWS Security Groups as the primary instance-level network access control mechanism. Security Groups are stateful virtual firewalls that control traffic to individual AWS resources.
-
-#### Public Web Security Group
-
-The public web security group allows:
-
-- HTTP (TCP 80) from the Internet
-- HTTPS (TCP 443) from the Internet
-- SSH (TCP 22) only from a trusted administrator IP address
-- All outbound traffic
-
-#### Private Application Security Group
-
-The private application security group allows:
-
-- TCP port **8080** only from resources associated with the public web security group
-- All outbound traffic
-
-Port **8080** was selected because it is a common application port used by web application frameworks such as Apache Tomcat, Spring Boot, and many Java-based services. The specific application is not deployed as part of this case study; instead, the port is used to demonstrate a common multi-tier architecture pattern in which a public-facing web tier communicates securely with a private application tier.
-
-Rather than allowing traffic from an IP address or subnet, the private application security group trusts the **public web security group** itself. This approach allows access to follow application identity rather than network location and is considered a cloud-native security design pattern within AWS.
-
----
-
-## Design Considerations
-
-### Security, Availability, and Cost Tradeoffs
-
-The architecture separates public-facing and internal resources into distinct network boundaries. As future milestones introduce public and private subnets, public-facing resources will use routing through an Internet Gateway only when external connectivity is required, while private resources will remain isolated from direct internet access. This layered approach reduces the externally accessible attack surface and establishes a clear security boundary between internet-facing and internal application resources.
-
-This foundational implementation intentionally prioritizes simplicity, repeatability, and cost control over production-level availability. The initial architecture is designed to demonstrate core AWS networking concepts while minimizing unnecessary complexity and ongoing AWS costs.
-
-As the project evolves, production-oriented capabilities such as multiple Availability Zones, redundant networking paths, and managed egress services will be introduced incrementally. This phased approach allows each architectural enhancement to be implemented, validated, and documented independently while preserving a clear learning progression.
-
-Where production environments commonly use components such as a NAT Gateway to provide outbound internet access for private workloads, those services are intentionally deferred until they become necessary for the implementation. This keeps the learning environment focused on the networking concepts introduced in each milestone while avoiding unnecessary recurring infrastructure costs.
+The current implementation avoids services with unnecessary recurring cost, such as NAT Gateway, because no private workload currently requires outbound internet access.
 
 ---
 
 ## Network Topology
 
-The current architecture consists of a dedicated Amazon VPC containing two Terraform-managed Security Groups that establish the project's initial network security boundaries.
+### VPC
 
-At this milestone, no subnets, Internet Gateway, custom route tables, NAT Gateway, or compute resources have been deployed. The architecture focuses on establishing reusable security policies before introducing workload-specific infrastructure.
+The VPC defines the private network boundary for the project.
 
-AWS default networking components—including the main route table, default Network ACL, and default security group—exist as part of the VPC but are not explicitly managed through Terraform during this milestone.
+Current lab configuration:
 
-The complete architecture is documented in the following assets:
+```text
+VPC CIDR: 10.10.0.0/16
+```
 
-- Source: `diagrams/source/aws-networking-foundations.mmd`
-- Rendered Diagram: `diagrams/exported/aws-networking-foundations.svg`
+The VPC contains matched public and private subnet pairs for each configured Availability Zone.
+
+### Availability Zone Configuration
+
+Availability Zones and subnet CIDRs are defined using a Terraform map of objects.
+
+Example:
+
+```hcl
+availability_zones = {
+  "us-east-1a" = {
+    public_subnet_cidr  = "10.10.1.0/24"
+    private_subnet_cidr = "10.10.11.0/24"
+  }
+}
+```
+
+Terraform uses `for_each` to create the required subnet and route-table resources for every configured Availability Zone.
+
+This design currently deploys one subnet pair but can expand to additional Availability Zones without duplicating infrastructure logic.
 
 ---
 
-## Current Implementation Scope
+## Public Subnet Design
 
-This project intentionally omits several production-oriented components while focusing on foundational networking concepts.
+Each configured Availability Zone receives one public subnet.
 
-Current exclusions include:
+Public subnets:
 
-- NAT Gateway
+- Automatically assign public IPv4 addresses to launched resources
+- Use a dedicated public route table
+- Have a default IPv4 route to the Internet Gateway
+- Are intended for future internet-facing resources
+
+A subnet is considered public because its associated route table contains:
+
+```text
+0.0.0.0/0 → Internet Gateway
+```
+
+The project does not currently deploy EC2 instances or other public workloads.
+
+---
+
+## Private Subnet Design
+
+Each configured Availability Zone receives one private subnet.
+
+Private subnets:
+
+- Do not automatically assign public IPv4 addresses
+- Use a dedicated private route table
+- Have only the VPC-local route
+- Do not have direct internet connectivity
+
+No NAT Gateway is deployed in the current milestone.
+
+This is intentional. Private workloads do not yet exist, and adding managed egress before it is required would increase cost without improving the current learning objective.
+
+---
+
+## Internet Connectivity
+
+The VPC includes one Internet Gateway.
+
+The Internet Gateway is attached to the VPC and referenced by the default route in each public route table.
+
+Attaching an Internet Gateway alone does not make a subnet public. Internet reachability requires all of the following:
+
+- An attached Internet Gateway
+- A route-table entry directing external traffic to the gateway
+- Association between the route table and the subnet
+- Appropriate security controls
+- A public IPv4 address on the resource
+
+---
+
+## Route Table Design
+
+### Public Route Tables
+
+One public route table is created for each configured Availability Zone.
+
+Each public route table includes:
+
+- The AWS-managed local VPC route
+- A default route to the Internet Gateway
+
+Each public subnet is explicitly associated with the matching public route table for its Availability Zone.
+
+### Private Route Tables
+
+One private route table is created for each configured Availability Zone.
+
+Each private route table includes:
+
+- The AWS-managed local VPC route
+- No default internet route
+
+Each private subnet is explicitly associated with the matching private route table for its Availability Zone.
+
+Using explicit associations avoids reliance on the VPC main route table and makes subnet behavior easier to understand, validate, and maintain.
+
+---
+
+## Security Architecture
+
+### Security Groups
+
+Security Groups provide stateful, resource-level traffic control.
+
+The project defines separate security groups for future public and private application tiers.
+
+### Public Web Security Group
+
+The public web security group allows:
+
+- HTTP on TCP port 80 from the internet
+- HTTPS on TCP port 443 from the internet
+- SSH on TCP port 22 from a trusted administrator CIDR
+- All outbound traffic
+
+SSH access is restricted through the `trusted_ssh_cidr` variable rather than opened globally.
+
+No compute resource currently uses this security group. It represents the intended access policy for a future public web tier.
+
+### Private Application Security Group
+
+The private application security group allows:
+
+- TCP port 8080 from resources associated with the public web security group
+- All outbound traffic
+
+The rule references the public web security group rather than an IP address or subnet CIDR.
+
+This expresses trust between application tiers and allows resources to be replaced or scaled without changing IP-based firewall rules.
+
+### Network ACLs
+
+The project currently uses the default Network ACL created with the VPC.
+
+Custom Network ACL rules are outside the current scope because the case study focuses on routing, subnet separation, and stateful Security Group design.
+
+---
+
+## Terraform Design
+
+The Terraform implementation separates configuration from infrastructure logic.
+
+### Configuration
+
+The following values are provided through variables:
+
+- AWS Region
+- VPC CIDR
+- Project name
+- Trusted SSH CIDR
+- Availability Zones
+- Public subnet CIDRs
+- Private subnet CIDRs
+
+### Resource Creation
+
+Terraform uses `for_each` across the Availability Zone map to create:
+
+- Public subnets
+- Private subnets
+- Public route tables
+- Private route tables
+- Public route-table associations
+- Private route-table associations
+- Public default routes
+
+This design avoids duplicate resource blocks and supports future multi-AZ expansion.
+
+### Outputs
+
+Terraform exposes:
+
+- VPC ID
+- Internet Gateway ID
+- Public subnet IDs keyed by Availability Zone
+- Private subnet IDs keyed by Availability Zone
+- Public route table IDs keyed by Availability Zone
+- Private route table IDs keyed by Availability Zone
+
+These outputs support validation, troubleshooting, and reuse by future configurations.
+
+---
+
+## Availability and Reliability
+
+The Terraform design is multi-AZ extensible, but the current lab deployment uses one Availability Zone.
+
+The present implementation should therefore not be described as highly available.
+
+A production-oriented extension would typically add:
+
+- At least two Availability Zones
+- Public and private subnet pairs in each Availability Zone
+- Redundant application resources
+- Load balancing
+- Multi-AZ data services
+- Availability Zone-aware routing and failure testing
+
+The current design establishes the reusable network pattern required for those capabilities.
+
+---
+
+## Cost Considerations
+
+The deployed components are primarily low-cost or no-additional-charge networking resources.
+
+Potential future cost drivers include:
+
+- NAT Gateway hourly and data-processing charges
+- EC2 instances
+- Application Load Balancer
+- Data transfer
+- VPC Flow Logs storage and analysis
+- Transit Gateway
+- VPN or Direct Connect services
+
+The lab remains intentionally disposable. Resources should be destroyed when validation is complete.
+
+---
+
+## Current Scope
+
+The current implementation includes:
+
+- Custom VPC
+- Public subnet
+- Private subnet
+- Internet Gateway
+- Public and private route tables
+- Explicit route-table associations
+- Public web security group
+- Private application security group
+- Terraform outputs
+- Architecture documentation
+- Validation evidence
+
+The current lab configuration deploys these resources in one Availability Zone.
+
+---
+
+## Deferred Capabilities
+
+The following capabilities are intentionally outside the current scope:
+
 - EC2 workloads
-- Multiple Availability Zones
+- NAT Gateway
+- Application Load Balancer
+- Auto Scaling
+- Multiple deployed Availability Zones
+- VPC Flow Logs
+- VPC peering
 - Transit Gateway
 - VPN connectivity
 - Direct Connect
 - Hybrid networking
+- Multi-cloud connectivity
 
-These capabilities will be introduced in future milestones of CAL-001 and in subsequent Cloud Architect Lab case studies, as appropriate.
-
----
-
-## Future Evolution
-
-The networking foundation established in this milestone is intentionally minimal and serves as the baseline for future Cloud Architect Lab case studies.
-
-Planned enhancements include:
-
-- Public subnet
-- Private subnet
-- Internet Gateway
-- Custom route tables
-- Route table associations
-- NAT Gateway
-- EC2 workloads
-- Multi-AZ networking
-- VPC peering
-
-Each enhancement will be introduced as an incremental milestone, allowing the architecture, Infrastructure as Code, validation evidence, and documentation to evolve together.
+These capabilities belong in later milestones or future Cloud Architect Lab case studies.
 
 ---
 
 ## Relationship to Future Projects
 
-This project establishes the networking foundation for future Cloud Architect Lab implementations.
+CAL-001 establishes the network design patterns that future case studies can reuse and extend.
 
-Planned projects will expand this architecture to include:
+Potential future work includes:
 
-- CAL-002 – AWS VPC Peering
-- Multi-AZ networking
-- EC2 application workloads
-- Secure private networking
-- Enterprise routing strategies
-- Hybrid and multi-cloud connectivity
+- CAL-002 — VPC peering
+- Multi-AZ application architecture
+- Public web and private application tiers
+- Managed private-subnet egress
+- Load balancing and Auto Scaling
+- Centralized network inspection
+- Hybrid connectivity
+- Multi-cloud integration
 
-Each future case study will build upon the architectural patterns established in CAL-001 rather than introducing unrelated designs.
+The primary value of CAL-001 is not only the deployed resources, but the repeatable pattern for designing, implementing, validating, and documenting cloud infrastructure.

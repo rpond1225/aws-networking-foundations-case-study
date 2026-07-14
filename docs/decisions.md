@@ -133,6 +133,18 @@ Port 8080 is commonly used by enterprise application servers such as Apache Tomc
 
 Architecture diagrams and documentation will always represent the current Terraform-managed infrastructure unless explicitly marked as a proposed or target architecture.
 
+## Decision 10 — Use Default Network ACLs for the Initial Implementation
+
+### Decision
+
+Retain the AWS default Network ACLs for the initial networking foundation and rely on Security Groups as the primary traffic control mechanism.
+
+### Rationale
+
+The objectives of CAL-001 are to establish foundational networking concepts, demonstrate Infrastructure as Code, and implement clear network segmentation. Security Groups provide stateful, resource-level access control that satisfies the requirements of this case study while keeping the design simple and maintainable.
+
+Introducing custom Network ACLs at this stage would increase configuration complexity without materially improving the security posture of the deployed architecture. In environments with stricter compliance, regulatory requirements, or advanced segmentation needs, custom Network ACLs can provide an additional layer of subnet-level control as part of a defense-in-depth strategy. Those scenarios are intentionally deferred to future case studies where their benefits can be demonstrated in context.
+
 ### Rationale
 
 Keeping documentation synchronized with deployed infrastructure prevents confusion between implemented and planned capabilities.

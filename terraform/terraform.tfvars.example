@@ -1,3 +1,14 @@
 aws_region   = "us-east-1"
 vpc_cidr     = "10.10.0.0/16"
 project_name = "aws-networking-foundations"
+
+# Replace with a trusted public IPv4 address using /32 notation.
+# Do not commit your actual administrator address.
+trusted_ssh_cidr = "203.0.113.10/32"
+
+availability_zones = {
+  "us-east-1a" = {
+    public_subnet_cidr  = "10.10.1.0/24"
+    private_subnet_cidr = "10.10.11.0/24"
+  }
+}
