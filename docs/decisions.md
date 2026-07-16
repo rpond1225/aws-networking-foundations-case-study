@@ -1,156 +1,127 @@
-# Design Decisions
+# Engineering Decisions
 
-## Purpose
-
-This document records the significant architectural decisions made during the design and implementation of **CAL-001 – AWS Networking Foundations**.
-
-Rather than documenting every implementation detail, this document explains the rationale behind key design choices and the tradeoffs that influenced them. More formal or long-lived decisions may also be captured as individual Architecture Decision Records (ADRs) within the `docs/adr/` directory.
-
----
-
-## Decision 1 — Create a Custom VPC
-
-### Decision
-
-Deploy a dedicated Virtual Private Cloud rather than using the default VPC provided by AWS.
-
-### Rationale
-
-Although AWS automatically creates a default VPC in each Region, production environments commonly use custom VPCs to provide complete control over IP addressing, subnet design, routing, and security boundaries.
-
-Building a custom VPC also mirrors enterprise cloud practices and provides a clean foundation for future expansion.
+| Property | Value |
+|----------|-------|
+| Case Study | CAL-001 — AWS Networking Foundations |
+| Status | Current |
+| Last Updated | 2026-07-15 |
 
 ---
 
-## Decision 2 — Build with Infrastructure as Code
+# Overview
 
-### Decision
+This document summarizes the significant engineering decisions made during the development of CAL-001.
 
-Provision all infrastructure using Terraform.
-
-### Rationale
-
-Infrastructure as Code provides repeatability, version control, peer review, and consistent deployments. It also minimizes configuration drift by ensuring infrastructure is recreated from source rather than manually configured.
+Detailed decision records are maintained separately as Architecture Decision Records (ADRs). This document provides a concise overview of the reasoning that shaped the current implementation.
 
 ---
 
-## Decision 3 — Document Architecture as Code
+# Networking Foundation First
 
-### Decision
+## Decision
 
-Maintain architecture diagrams as Mermaid source files and generate SVG diagrams for documentation.
+Build the networking foundation before deploying compute resources.
 
-### Rationale
+## Rationale
 
-Treating architecture diagrams as source artifacts ensures that architectural documentation evolves alongside the infrastructure code. Version-controlled diagrams also support collaboration, change tracking, and automated publishing workflows.
-
----
-
-## Decision 4 — Build the Network in Incremental Milestones
-
-### Decision
-
-Implement the networking architecture through small, validated milestones rather than deploying a complete production-style environment in a single iteration.
-
-### Rationale
-
-Incremental implementation allows each networking concept to be designed, implemented, validated, documented, and committed independently.
-
-This approach keeps the architecture aligned with the deployed infrastructure while reducing complexity during development. It also produces clearer documentation by allowing each milestone to focus on a single architectural concept before introducing the next.
+Networking is a prerequisite for nearly every AWS workload. Establishing a reusable, validated foundation allows future case studies to focus on new architectural concepts without rebuilding core networking components.
 
 ---
 
-## Decision 5 — Separate Repository Documentation by Responsibility
+# Infrastructure as Code
 
-### Decision
+## Decision
 
-Organize project documentation into focused documents rather than a single large design document.
+Manage all infrastructure using Terraform.
 
-### Rationale
+## Rationale
 
-Separating architecture, deployment, validation, lessons learned, and design decisions makes the documentation easier to maintain and aligns with the future publishing workflow planned for Cloud Architect Lab and CAL CLI.
-
----
-
-## Architecture Decision Records (ADRs)
-
-As the project evolves, significant implementation and architecture decisions may be captured as individual ADRs within the `docs/adr/` directory.
-
-Current ADRs include:
-
-- ADR-001 — Structured Availability Zone Configuration with `for_each`
-
-Future ADRs may document decisions such as:
-
-- CIDR allocation strategy
-- Multi-AZ design
-- NAT Gateway placement
-- Network ACL usage
-- Route table organization
-- High availability considerations
-- Cost optimization
-- Module organization
-
-## Decision 6 — Separate Security Groups by Application Tier
-
-### Decision
-
-Create separate Security Groups for the public web tier and the private application tier.
-
-### Rationale
-
-Separating Security Groups follows the principle of least privilege by assigning different network access policies to different application tiers. Public-facing resources require different access than private application resources, and separating them improves security, readability, and long-term maintainability.
+Terraform provides repeatable deployments, version control, and consistent environments while reducing manual configuration.
 
 ---
 
-## Decision 7 — Use Security Group References Between Application Tiers
+# Incremental Delivery
 
-### Decision
+## Decision
 
-Allow communication from the public web tier to the private application tier by referencing the public web Security Group instead of allowing traffic from IP addresses or subnet CIDR ranges.
+Develop the environment through small, validated milestones.
 
-### Rationale
+## Rationale
 
-Security Group references express trust between application tiers rather than network locations. This approach is resilient to infrastructure changes because resources may be replaced or scaled without requiring updates to IP-based firewall rules. It reflects a cloud-native security model commonly used in AWS environments.
-
----
-
-## Decision 8 — Use TCP Port 8080 for the Private Application Tier
-
-### Decision
-
-Model communication between the public web tier and the private application tier using TCP port 8080.
-
-### Rationale
-
-Port 8080 is commonly used by enterprise application servers such as Apache Tomcat, Spring Boot, and other Java-based web applications. Although this project does not yet deploy an application, using a realistic application port demonstrates a common multi-tier architecture pattern while remaining independent of any specific application framework.
+Each milestone introduces a limited number of concepts, making it easier to understand, validate, and document architectural changes.
 
 ---
 
-## Decision 9 — Keep Documentation Aligned with Deployed Infrastructure
+# Public and Private Network Segmentation
 
-### Decision
+## Decision
 
-Architecture diagrams and documentation will always represent the current Terraform-managed infrastructure unless explicitly marked as a proposed or target architecture.
+Separate public and private resources into dedicated subnets.
 
-## Decision 10 — Use Default Network ACLs for the Initial Implementation
+## Rationale
 
-### Decision
-
-Retain the AWS default Network ACLs for the initial networking foundation and rely on Security Groups as the primary traffic control mechanism.
-
-### Rationale
-
-The objectives of CAL-001 are to establish foundational networking concepts, demonstrate Infrastructure as Code, and implement clear network segmentation. Security Groups provide stateful, resource-level access control that satisfies the requirements of this case study while keeping the design simple and maintainable.
-
-Introducing custom Network ACLs at this stage would increase configuration complexity without materially improving the security posture of the deployed architecture. In environments with stricter compliance, regulatory requirements, or advanced segmentation needs, custom Network ACLs can provide an additional layer of subnet-level control as part of a defense-in-depth strategy. Those scenarios are intentionally deferred to future case studies where their benefits can be demonstrated in context.
-
-### Rationale
-
-Keeping documentation synchronized with deployed infrastructure prevents confusion between implemented and planned capabilities.
-
-Future architectural designs may be documented separately as proposed architecture, but the primary project documentation should accurately reflect the current implementation.
-
-This approach reinforces Infrastructure as Code and Architecture as Code by ensuring diagrams, documentation, and Terraform evolve together.
+Network segmentation improves security and reflects common AWS architectural patterns used in production environments.
 
 ---
+
+# Security Group References
+
+## Decision
+
+Use Security Group references between application tiers.
+
+## Rationale
+
+Referencing Security Groups instead of IP addresses simplifies scaling and reduces administrative overhead while maintaining least-privilege access.
+
+---
+
+# Multi-Availability Zone Design
+
+## Decision
+
+Design Terraform for future multi-Availability Zone expansion using `for_each`.
+
+## Rationale
+
+Although the current deployment uses a single Availability Zone, the Terraform configuration supports future expansion with minimal structural changes.
+
+---
+
+# Architecture as Code
+
+## Decision
+
+Maintain architecture diagrams as version-controlled Mermaid source.
+
+## Rationale
+
+Treating architecture diagrams as source code enables version control, peer review, and synchronization with the deployed environment.
+
+---
+
+# Documentation as an Engineering Deliverable
+
+## Decision
+
+Separate documentation into focused engineering documents.
+
+## Rationale
+
+Keeping architecture, deployment, validation, and engineering decisions in dedicated documents improves maintainability and reduces duplication.
+
+---
+
+# Related ADRs
+
+Additional implementation details are documented in:
+
+- `adr/`
+
+---
+
+# Related Documentation
+
+- `architecture.md`
+- `deployment.md`
+- `validation.md`

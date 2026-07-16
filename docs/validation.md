@@ -1,218 +1,146 @@
 # Validation
 
-## Purpose
-
-This document records the validation activities performed after deployment to verify that the AWS infrastructure matches the Terraform configuration, intended architecture, and project documentation.
-
-Validation consisted of:
-
-- Terraform validation
-- Infrastructure deployment verification
-- AWS Management Console verification
-- Architecture verification
-- Terraform state verification
+| Property | Value |
+|----------|-------|
+| Case Study | CAL-001 — AWS Networking Foundations |
+| Status | Current |
+| Last Updated | 2026-07-15 |
 
 ---
 
-# Terraform Validation
+# Overview
 
-The following Terraform commands completed successfully:
+This document records the validation performed against the deployed CAL-001 AWS networking environment.
 
-```bash
-terraform fmt
-terraform validate
-terraform plan
-terraform apply
-```
-
-Terraform completed without errors.
-
-A subsequent validation using:
-
-```bash
-terraform plan
-```
-
-returned:
-
-> No changes. Your infrastructure matches the configuration.
-
-This confirms that the deployed infrastructure is fully synchronized with the Terraform state.
+The objective is to verify that the deployed infrastructure matches the documented architecture and behaves as intended.
 
 ---
 
-# AWS Console Validation
+# Validation Objectives
 
-The deployed infrastructure was verified within the AWS Management Console.
+The current implementation validates that:
 
-The following resources were confirmed:
+- Terraform successfully provisions the infrastructure.
+- AWS resources match the intended architecture.
+- Network routing is configured correctly.
+- Security Groups enforce the expected access rules.
+- Documentation accurately reflects the deployed environment.
 
-- VPC
+---
+
+# Validation Results
+
+| Validation | Result |
+|------------|--------|
+| Terraform formatting (`terraform fmt`) | ✅ Pass |
+| Terraform validation (`terraform validate`) | ✅ Pass |
+| Terraform plan | ✅ Pass |
+| Terraform apply | ✅ Pass |
+| Terraform state matches documentation | ✅ Pass |
+| AWS Console verification | ✅ Pass |
+| Architecture diagram matches deployment | ✅ Pass |
+| Documentation review | ✅ Pass |
+
+---
+
+# Infrastructure Validation
+
+The following resources were verified after deployment:
+
+- Amazon VPC (`10.10.0.0/16`)
 - Internet Gateway
-- Public Subnet
-- Private Subnet
+- Public subnet (`10.10.1.0/24`)
+- Private subnet (`10.10.11.0/24`)
 - Public Route Table
 - Private Route Table
+- Route Table Associations
 - Public Web Security Group
 - Private Application Security Group
 
 ---
 
-# Validation Evidence
+# Network Validation
 
-## VPC Overview
-
-![VPC Overview](../screenshots/vpc-overview.png)
-
-Validation confirmed:
-
-- VPC Name: **cal-001-vpc**
-- CIDR Block: **10.10.0.0/16**
-- Expected project tags applied
-
----
-
-## Resource Map
-
-![Resource Map](../screenshots/resource-map.png)
-
-The AWS Resource Map confirms the deployed relationships between:
-
-- VPC
-- Public Subnet
-- Private Subnet
-- Route Tables
-
----
-
-## Internet Gateway
-
-![Internet Gateway](../screenshots/internet-gateway.png)
-
-Validation confirmed:
-
-- Internet Gateway attached to the project VPC
-- Correct project tags applied
-
----
+The deployed routing configuration was confirmed:
 
 ## Public Subnet
 
-![Public Subnet](../screenshots/public-subnet.png)
-
-Validation confirmed:
-
-- Availability Zone: **us-east-1a**
-- CIDR Block: **10.10.1.0/24**
-- Associated with the Public Route Table
-
----
+- Local VPC route present
+- Default route (`0.0.0.0/0`) to the Internet Gateway
 
 ## Private Subnet
 
-![Private Subnet](../screenshots/private-subnet.png)
-
-Validation confirmed:
-
-- Availability Zone: **us-east-1a**
-- CIDR Block: **10.10.11.0/24**
-- Associated with the Private Route Table
+- Local VPC route present
+- No default Internet route
 
 ---
 
-## Public Route Table
+# Security Validation
 
-![Public Route Table](../screenshots/public-route-table.png)
-
-Validation confirmed:
-
-- Local VPC route
-- Default route (0.0.0.0/0) directed to the Internet Gateway
-
----
-
-## Private Route Table
-
-![Private Route Table](../screenshots/private-route-table.png)
-
-Validation confirmed:
-
-- Local VPC route only
-- No Internet Gateway route present
-
----
+The following Security Group rules were verified.
 
 ## Public Web Security Group
 
-![Public Security Group](../screenshots/public-security-group.png)
+Inbound:
 
-Validation confirmed inbound rules:
+- HTTP (80) from the Internet
+- HTTPS (443) from the Internet
+- SSH (22) from the configured trusted administrator CIDR
 
-- HTTP (TCP 80)
-- HTTPS (TCP 443)
-- SSH (TCP 22) from the trusted administrator CIDR
+Outbound:
 
-Validation confirmed outbound rules:
-
-- All outbound traffic permitted
+- All traffic
 
 ---
 
 ## Private Application Security Group
 
-![Private Security Group](../screenshots/private-security-group.png)
-
-Validation confirmed inbound rules:
+Inbound:
 
 - TCP 8080 from the Public Web Security Group
 
-Validation confirmed outbound rules:
+Outbound:
 
-- All outbound traffic permitted
-
----
-
-# Terraform State Verification
-
-Terraform state accurately reflects the deployed infrastructure.
-
-Infrastructure changes are managed exclusively through Terraform.
-
-No manual modifications were made through the AWS Management Console following deployment.
+- All traffic
 
 ---
 
-# Architecture Verification
+# Evidence
 
-The deployed resources were compared against the architecture diagram.
+Validation evidence includes:
 
-Validation confirmed consistency between:
-
-- Terraform configuration
+- Terraform command output
 - Terraform state
-- AWS deployed resources
-- Architecture diagram
-- Project documentation
+- AWS Management Console verification
+- Architecture diagram review
 
 ---
 
-# Validation Summary
+# Known Limitations
 
-The CAL-001 networking environment deployed successfully and passed all validation activities.
+The current implementation intentionally does not include:
 
-The deployed infrastructure is operating as designed and provides the networking foundation for future case study milestones.
+- NAT Gateway
+- Bastion Host
+- Application Load Balancer
+- EC2 instances
+- Auto Scaling
+- Multi-Availability Zone deployment
+
+These components will be validated in future milestones.
 
 ---
 
-# Future Validation
+# Conclusion
 
-Future milestones will expand validation activities to include:
+The deployed infrastructure matches the documented architecture and satisfies the objectives of CAL-001.
 
-- EC2 instance deployment
-- Security Group traffic testing
-- Route validation
-- NAT Gateway validation
-- Private subnet Internet connectivity
-- Multi-AZ deployment validation
-- High Availability testing
-- VPC Peering validation
+The networking foundation is ready to support subsequent Cloud Architect Lab case studies.
+
+---
+
+# Related Documentation
+
+- `architecture.md`
+- `deployment.md`
+- `decisions.md`

@@ -16,6 +16,25 @@ The repository showcases Infrastructure as Code (IaC), Architecture as Code (AaC
 
 ---
 
+# Current Deployment
+
+The current implementation deploys:
+
+- Amazon VPC (`10.10.0.0/16`)
+- Internet Gateway
+- Public subnet (`10.10.1.0/24`)
+- Private subnet (`10.10.11.0/24`)
+- Public Route Table
+- Private Route Table
+- Public Route (0.0.0.0/0 → Internet Gateway)
+- Public and Private Route Table Associations
+- Public Web Security Group
+- Private Application Security Group
+
+The current deployment uses a single Availability Zone (`us-east-1a`). The Terraform configuration is designed to expand to multiple Availability Zones using `for_each` without duplicating infrastructure code.
+
+---
+
 # Technical Highlights
 
 This project demonstrates:
@@ -32,34 +51,6 @@ This project demonstrates:
 - Validation evidence captured from AWS
 - Enterprise engineering documentation
 - Disposable Infrastructure as Code lab environments
-
----
-
-# Why This Project Exists
-
-CAL-001 is more than a Terraform exercise.
-
-Its purpose is to establish the engineering patterns, networking architecture, documentation standards, validation methodology, and reusable Terraform design that future Cloud Architect Lab case studies will build upon.
-
-The emphasis is not simply on deploying AWS resources, but on demonstrating the engineering discipline used to design, implement, validate, and document cloud infrastructure.
-
----
-
-# Current Architecture
-
-The current implementation deploys:
-
-- Custom Amazon VPC
-- Public subnet
-- Private subnet
-- Internet Gateway
-- Public Route Table
-- Private Route Table
-- Route Table Associations
-- Public Web Security Group
-- Private Application Security Group
-
-The current lab deployment uses a single Availability Zone while the Terraform configuration is designed to expand to multiple Availability Zones through configuration rather than duplicated infrastructure code.
 
 ---
 
@@ -99,46 +90,32 @@ aws-networking-foundations/
 
 # Engineering Practices
 
-This repository follows several engineering principles that are applied consistently throughout Cloud Architect Lab.
+This repository follows Cloud Architect Lab engineering standards, including:
 
 - Infrastructure as Code (IaC)
 - Architecture as Code (AaC)
 - Documentation as Code
 - Validation-first engineering
-- Git-based engineering workflow
-- Disposable cloud environments
-- Privacy-first portfolio design
 
 ---
 
 # Validation
 
-The deployed infrastructure was validated through:
+Validation included:
 
 - Terraform formatting and validation
-- Terraform execution plan review
 - Successful infrastructure deployment
 - Terraform state verification
 - AWS Management Console verification
-- Architecture comparison
-- Documentation review
+- Architecture review against the deployed environment
 
-Validation evidence includes:
-
-- AWS Resource Map
-- VPC configuration
-- Internet Gateway
-- Public and private subnets
-- Route tables
-- Security Groups
-
-Complete validation details are available in:
+Complete validation evidence is available in:
 
 **`docs/validation.md`**
 
 ---
 
-## Key Design Decisions
+# Key Design Decisions
 
 Notable architectural decisions include:
 
@@ -191,22 +168,6 @@ Planned milestones include:
 - Transit Gateway
 - Hybrid networking
 - Multi-cloud connectivity
-
----
-
-# Learning Outcomes
-
-This project demonstrates practical experience with:
-
-- AWS networking architecture
-- Infrastructure as Code using Terraform
-- Network segmentation
-- Route table design
-- Security Group architecture
-- Cloud infrastructure validation
-- Architecture documentation
-- Git-based engineering workflows
-- Enterprise cloud engineering practices
 
 ---
 

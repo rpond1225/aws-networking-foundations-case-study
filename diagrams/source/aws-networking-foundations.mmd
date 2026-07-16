@@ -1,20 +1,88 @@
-architecture-beta
-    service internet(aws:res-internet-alt1-light)[Internet]
+%% =============================================================================
+%% Cloud Architect Lab
+%% CAL-001 - AWS Networking Foundations
+%% =============================================================================
+%% Diagram Type: Current As-Built Architecture
+%% Audience: Executive / Engineering
+%% Milestone: Subnet and Routing Foundations
+%% Terraform State: Current
+%% =============================================================================
+%% Deployed resources:
+%% - VPC: 10.10.0.0/16
+%% - Public subnet: 10.10.1.0/24
+%% - Private subnet: 10.10.11.0/24
+%% - Internet Gateway
+%% - Public and private route tables
+%% - Public and private security groups
+%% =============================================================================
+%% Not deployed:
+%% - NAT Gateway
+%% - Load balancer
+%% - Compute resources
+%% =============================================================================
 
-    group region(aws:region)[AWS Region]
+graph TB
 
-        group vpc(aws:virtual-private-cloud-vpc)[CAL 001 VPC] in region
-            service igw(aws:res-amazon-vpc-internet-gateway)[Internet Gateway] in vpc
+    Internet["Internet / Users"]
+    TrustedAdmin["Trusted Administrator<br/>Configured CIDR"]
 
-            group public_subnet(aws:public-subnet)[Public Subnet] in vpc
-                service public_route_table[Public Route Table] in public_subnet
+    subgraph Account["AWS Account"]
 
-            group private_subnet(aws:private-subnet)[Private Subnet] in vpc
-                service private_route_table[Private Route Table] in private_subnet
+        subgraph Region["Region: us-east-1"]
 
-            service public_security_group[Public Web Security Group] in vpc
-            service private_security_group[Private Application Security Group] in vpc
+            subgraph VPC["VPC: 10.10.0.0/16"]
 
-    internet:L <--> R:igw
-    igw:B --> T:public_route_table
-    public_security_group:R --> L:private_security_group
+                IGW["Internet Gateway"]
+
+                subgraph AZ["Availability Zone: us-east-1a"]
+
+                    subgraph PublicSubnet["Public Subnet: 10.10.1.0/24"]
+
+                        PublicRT["Public Route Table<br/>10.10.0.0/16 → local<br/>0.0.0.0/0 → Internet Gateway"]
+
+                        PublicSG["Public Web Security Group<br/>Inbound: HTTP 80 from Internet<br/>Inbound: HTTPS 443 from Internet<br/>Inbound: SSH 22 from Trusted CIDR<br/>Outbound: All"]
+
+                    end
+
+                    subgraph PrivateSubnet["Private Subnet: 10.10.11.0/24"]
+
+                        PrivateRT["Private Route Table<br/>10.10.0.0/16 → local<br/>No Internet default route"]
+
+                        PrivateSG["Private Application Security Group<br/>Inbound: TCP 8080 from Public Web SG<br/>Outbound: All"]
+
+                    end
+
+                end
+
+            end
+
+        end
+
+    end
+
+    Internet --> IGW
+    PublicRT -->|"0.0.0.0/0"| IGW
+
+    Internet -.->|"HTTP 80 / HTTPS 443 allowed"| PublicSG
+    TrustedAdmin -.->|"SSH 22 allowed"| PublicSG
+    PublicSG -.->|"TCP 8080 allowed"| PrivateSG
+
+    classDef account stroke:#818cf8,fill:#eef2ff
+    classDef region stroke:#818cf8,fill:#eef2ff
+    classDef vpc stroke:#2dd4bf,fill:#f0fdfa
+    classDef az stroke:#38bdf8,fill:#f0f9ff
+    classDef subnet stroke:#22d3ee,fill:#ecfeff
+    classDef route stroke:#a78bfa,fill:#faf5ff
+    classDef sg stroke:#fb923c,fill:#fff7ed
+    classDef resource stroke:#4ade80,fill:#f0fdf4
+    classDef external stroke:#f87171,fill:#fef2f2
+
+    class Account account
+    class Region region
+    class VPC vpc
+    class AZ az
+    class PublicSubnet,PrivateSubnet subnet
+    class PublicRT,PrivateRT route
+    class PublicSG,PrivateSG sg
+    class IGW resource
+    class Internet,TrustedAdmin external
